@@ -45,10 +45,10 @@ function getUrl (year, month, date, hours, minutes, x, y, size) {
  * @param {function} callback - a function triggered once the image is loaded, take params:
  *   @param {Error|string} err - the error, can be null and b64
  *   @param {string} b64 - the image in b64: 'data:image/png;base64,iVBOR...'
- *   @param {string} reference - the image reference: 'year-month-date_hour:minutes_size'
+ *   @param {string} reference - the image reference: 'year-month-date_hour-minutes_size'
  */
 function getImage (year, month, date, hours, minutes, size, callback) {
-  var reference = year + '-' + month + '-' + date + '_' + hours + ':' + minutes + '_' + size
+  var reference = year + '-' + month + '-' + date + '_' + hours + '-' + minutes + '_' + size
   var buffer = []
   var options = {
     width: IMAGE_SIZE * size,
@@ -59,6 +59,7 @@ function getImage (year, month, date, hours, minutes, size, callback) {
   for (var x = 0; x < size; x++) {
     for (var y = 0; y < size; y++) {
       (function (x, y) {
+        //console.log(getUrl(year, month, date, hours, minutes, x, y, size))
         https.get(getUrl(year, month, date, hours, minutes, x, y, size), function (res) {
           var data = new Stream()
           res.on('data', function (d) {
@@ -106,6 +107,7 @@ function updateWallpaper () {
   getLastImage(4, function (err, b64, reference) {
     if (err) console.error(err)
     else {
+      //console.log(b64)
       base64Img.img(b64, __dirname + '/download', reference, function (err, filepath) {
         if (err) console.error(err)
         else {
