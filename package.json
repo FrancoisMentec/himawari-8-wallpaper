@@ -1,0 +1,20 @@
+{
+  "name": "himawari-8-wallpaper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "npm install -g forever",
+    "start": "forever start -o out.log -e err.log index.js",
+    "stop": "forever stop index.js",
+    "restart": "forever restart -o out.log -e err.log index.js"
+  },
+  "author": "françois Mentec",
+  "license": "ISC",
+  "dependencies": {
+    "base64-img": "^1.0.3",
+    "canvas": "^1.6.5",
+    "merge-images": "^1.0.5"
+  }
+}
