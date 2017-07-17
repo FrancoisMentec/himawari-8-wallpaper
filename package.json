@@ -15,6 +15,7 @@
   "dependencies": {
     "base64-img": "^1.0.3",
     "canvas": "^1.6.5",
-    "merge-images": "^1.0.5"
+    "merge-images": "^1.0.5",
+    "pify": "^3.0.0"
   }
 }

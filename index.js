@@ -7,7 +7,23 @@ const base64Img = require('base64-img')
 const wallpaper = require('./wallpaper')
 
 const IMAGE_SIZE = 550 // size of an image from himawari 8
-const UPDATE_INTERVAL = 600000
+
+// config
+/**
+ * Size of the wallpaper
+ * 1: 550x550
+ * 2: 1100x1100
+ * 4: 2200x2200
+ * 8: 4400x4400
+ * 16: 8800x8800
+ */
+const SIZE = 2
+
+/**
+ * Keep older image, if false doesn't remove previously downloaded image
+ */
+const KEEP_OLDER = false
+
 
 var updateTimeout = null
 
@@ -20,7 +36,7 @@ var updateTimeout = null
  * @param {number} minutes - the minute (0, 10, 20, 30, 40, 50)
  * @param {number} x - the x position, start at 0 end at size - 1
  * @param {number} y - the y position, start at 0 end at size - 1
- * @param {number} size - the size of the image (1, 2, 4, 8, 16), the real size of the image is: size * IMAGE_SIZE x size * IMAGE_SIZE
+ * @param {number} size - the size of the image (1, 2, 4, 8, 16)
  * @return {string} The url of the image
  */
 function getUrl (year, month, date, hours, minutes, x, y, size) {
@@ -111,18 +127,33 @@ function getLastImage (size, callback) {
 }
 
 function updateWallpaper () {
-  getLastImage(4, function (err, b64, reference) {
+  getLastImage(SIZE, function (err, b64, reference) {
     if (err) console.error(err)
     else {
       //console.log(b64)
-      base64Img.img(b64, __dirname + '/download', reference, function (err, filepath) {
+      var name = KEEP_OLDER
+        ? reference
+        : 'last'
+      base64Img.img(b64, __dirname + '/download', name, function (err, filepath) {
         if (err) console.error(err)
         else {
           wallpaper.set(filepath).then(function () {
-            console.log('wallpaper updated: ' + filepath)
+            var now = new Date()
+						var hours = now.getHours() < 10
+							? '0' + now.getHours()
+							: now.getHours()
+						var minutes = now.getMinutes() < 10
+							? '0' + now.getMinutes()
+							: now.getMinutes()
+						var seconds = now.getSeconds() < 10
+							? '0' + now.getSeconds()
+							: now.getSeconds()
+            console.log(hours + ':' + minutes + ':' + seconds + ' - wallpaper updated: ' + reference)
+            var up = 600000 - ((now.getTime() + 600000) % 600000) + 10000 // 10 sec margin in case server is late
+            //console.log(up)
             updateTimeout = setTimeout(function () {
               updateWallpaper()
-            }, UPDATE_INTERVAL)
+            }, up)
           }).catch(function (err) {
             console.error(err)
           })
