@@ -59,31 +59,38 @@ function getImage (year, month, date, hours, minutes, size, callback) {
   for (var x = 0; x < size; x++) {
     for (var y = 0; y < size; y++) {
       (function (x, y) {
-        //console.log(getUrl(year, month, date, hours, minutes, x, y, size))
-        https.get(getUrl(year, month, date, hours, minutes, x, y, size), function (res) {
+        var url = getUrl(year, month, date, hours, minutes, x, y, size)
+        https.get(url, function (res) {
           var data = new Stream()
-          res.on('data', function (d) {
-            data.push(d)
-          })
-          res.on('end', function () {
-            var image = {
-              src: data.read(),
-              x: x * IMAGE_SIZE,
-              y: y * IMAGE_SIZE
-            }
-            buffer.push(image)
-            //fs.writeFileSync('download/' + x + ',' + y + '.png', image.src)
-            if (++imgLoaded === size * size) {
-              mergeImages(buffer, options).then(function (b64) {
-                callback(null, b64, reference)
-              }).catch(function (err) {
-                callback(err, null, reference)
-              })
-            }
-          })
-          res.on('error', function (err) {
-            console.error(err)
-          })
+
+          if (res.statusCode >= 300) {
+            console.error(url + ' returned status code: ' + res.statusCode)
+          } else {
+            res.on('data', function (d) {
+              data.push(d)
+            })
+
+            res.on('end', function () {
+              var image = {
+                src: data.read(),
+                x: x * IMAGE_SIZE,
+                y: y * IMAGE_SIZE
+              }
+              buffer.push(image)
+              //fs.writeFileSync('download/' + x + ',' + y + '.png', image.src)
+              if (++imgLoaded === size * size) {
+                mergeImages(buffer, options).then(function (b64) {
+                  callback(null, b64, reference)
+                }).catch(function (err) {
+                  callback(err, null, reference)
+                })
+              }
+            })
+
+            res.on('error', function (err) {
+              console.error(err)
+            })
+          }
         })
       })(x, y)
     }
@@ -100,7 +107,7 @@ function getLastImage (size, callback) {
   time -= time % 600000 // Round to previous 10 minutes
   d.setTime(time)
 
-  getImage(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), size, callback)
+  getImage(d.getUTCFullYear(), d.getUTCMonth() + 1/* bc date month start at 0 */, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), size, callback)
 }
 
 function updateWallpaper () {
